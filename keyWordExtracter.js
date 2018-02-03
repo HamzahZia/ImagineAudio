@@ -6,22 +6,7 @@ let accessKey = process.env.TEXT_ANALYZER_KEY;
 let uri = 'eastus.api.cognitive.microsoft.com';
 let path = '/text/analytics/v2.0/keyPhrases';
 
-let response_handler = function (response) {
-	let body = '';
-	response.on ('data', function (d) {
-		body += d;
-	});
-	response.on ('end', function () {
-		let body_ = JSON.parse (body);
-		let body__ = JSON.stringify (body_, null, '  ');
-		console.log (body__);
-	});
-	response.on ('error', function (e) {
-		console.log ('Error: ' + e.message);
-	});
-};
-
-let get_key_phrases = function (documents) {
+let get_key_phrases = function (documents, callback) {
 	var lines = documents.split('\n');
 	var content = {'documents': [] };
 	var count = 1;
@@ -41,17 +26,33 @@ let get_key_phrases = function (documents) {
 		}
 	};
 
-	let req = https.request (request_params, response_handler);
+	let req = https.request (request_params, function (response) {
+		let body = '';
+		response.on ('data', function (d) {
+			body += d;
+		});
+		response.on ('end', function () {
+			let body_ = JSON.parse (body);
+			let body__ = JSON.stringify (body_, null, '  ');
+			//console.log (body__);
+			callback(null, body__);
+		});
+		response.on ('error', function (e) {
+			callback(e, null);
+			console.log ('Error: ' + e.message);
+		});
+	});
+
 	req.write (body);
 	req.end ();
-}
+	}
 
-//var lang = "en";
+	//var lang = "en";
 
-// Sample parameter
+	// Sample parameter
 /* let documents = {'documents': [
-	{ 'id': 1, 'language': lang, 'text': "I want this forever man"}
-]}; */
+   { 'id': 1, 'language': lang, 'text': "I want this forever man"}
+   ]}; */
 
 module.exports = {
 	get_key_words: get_key_phrases

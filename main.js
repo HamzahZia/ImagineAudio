@@ -1,10 +1,5 @@
-var keyword = require('./keyWordExtracter.js');
+var b = require('./meta_maker.js');
 
-var lyric = "Hey what up I'm here at QHacks\n About to go do some quick maths";
-
-keyword.get_key_words(lyric, function(err, result) {
-	if (err) console.log(err);
-	else {
-		console.log(result);
-	}
-});
+b.getMetaData('https://qhacks18.firebaseapp.com/94fd0a47-4a74-4260-a8d0-d62d62a648d8', function (res) {
+		console.log(JSON.stringify(res, null, 2));
+		});

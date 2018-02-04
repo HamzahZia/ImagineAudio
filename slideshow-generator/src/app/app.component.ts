@@ -143,17 +143,28 @@ export class AppComponent implements OnInit {
     this.loading = true;
     this.setup = false;
     this.currLoadingMessage = 0;
+    let dataRecieved = false;
+    let intervalDone = false;
     console.log(this.mp3.url);
     this.httpClient.get('http://localhost:8090/' + this.downloadUrl).subscribe((result) => {
-      this.data = result;
       console.log(result);
+      this.data = result;
+      dataRecieved = true;
+      if (intervalDone) {
+        this.startDisplay(this.data);
+        clearInterval(this.counterInterval);
+        this.loading = false; 
+      }
     });
     this.counterInterval = setInterval(() => {
-      this.currLoadingMessage = Math.min(this.currLoadingMessage + 1, this.loadingMessages.length);
-      if (this.currLoadingMessage == this.loadingMessages.length) {
+      this.currLoadingMessage = Math.min(this.currLoadingMessage + 1, this.loadingMessages.length-1);
+      if (this.currLoadingMessage >= this.loadingMessages.length) {
+        intervalDone = true;
+      }
+      if (dataRecieved) {
         clearInterval(this.counterInterval);
-        this.loading = false; // Remove this when we have the api call
         this.startDisplay(this.data);
+        this.loading = false; 
       }
     }, 5000);
     // Make api call
@@ -164,15 +175,17 @@ export class AppComponent implements OnInit {
     let imgArr = [];
     for (let key in data) {
       timeArr.unshift(key);
-      imgArr.unshift(data[1]);
+      imgArr.unshift(data[key][1]);
     }
-    for (let i = 0; i < imgArr.length; i++) {
-      let pic = document.createElement('img');
-      console.log(imgArr[i]);
-      pic.src = imgArr[i];
-      pic.id = ""+i;
-      document.querySelector('.images').appendChild(pic);
-    }
+    // for (let i = 0; i < imgArr.length; i++) {
+    //   let pic = document.createElement('img');
+    //   console.log(imgArr[i]);
+    //   pic.src = imgArr[i];
+    //   pic.id = ""+i;
+    //   pic.className = "static-image";
+    //   pic.style.zIndex = "-"+i;
+    //   document.querySelector('.images').appendChild(pic);
+    // }
     this.appRef.tick();
     console.log(timeArr);
     console.log(imgArr);
@@ -184,7 +197,14 @@ export class AppComponent implements OnInit {
     setTimeout(audio.play());
     for (let i = 0; i < timeArr.length; i++) {
         setTimeout(() => {
-          document.querySelector("#"+i).className = "invisible";
+          if (i != 0) {
+            document.querySelector(".static-image").remove();
+          }
+          let pic = document.createElement('img');
+          pic.src = imgArr[i];
+          pic.className = "static-image";
+          document.querySelector('.images').appendChild(pic);
+          this.appRef.tick();
         }, 1000*<any>timeArr[i]);
     }
   }

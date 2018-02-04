@@ -9,6 +9,7 @@ import { AppComponent } from './app.component';
 import { MatInputModule, MatToolbarModule, MatButtonModule, MatIconModule } from '@angular/material';
 import { AngularFireModule } from 'angularfire2';
 
+import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 
 @NgModule({
@@ -19,6 +20,7 @@ import { environment } from '../environments/environment';
     BrowserModule,
     HttpClientModule,
     BrowserAnimationsModule,
+    ServiceWorkerModule.register('/ngsw-worker.js', {enabled: environment.production}),
     FormsModule,
     ReactiveFormsModule,
     MatInputModule,

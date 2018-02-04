@@ -169,6 +169,12 @@
   dependencies:
     tslib "^1.7.1"
 
+"@angular/service-worker@^5.2.3":
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@angular/service-worker/-/service-worker-5.2.3.tgz#f093c770fa29777944931cad9116ef7a8878a66a"
+  dependencies:
+    tslib "^1.7.1"
+
 "@firebase/app-types@0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@firebase/app-types/-/app-types-0.1.1.tgz#1b794e101c779310763b1bfce8c24e7728fb9a91"
@@ -3048,6 +3054,10 @@ grpc@^1.7.1:
     nan "^2.0.0"
     node-pre-gyp "^0.6.39"
     protobufjs "^5.0.0"
+
+hammerjs@^2.0.8:
+  version "2.0.8"
+  resolved "https://registry.yarnpkg.com/hammerjs/-/hammerjs-2.0.8.tgz#04ef77862cff2bb79d30f7692095930222bf60f1"
 
 handle-thing@^1.2.5:
   version "1.2.5"

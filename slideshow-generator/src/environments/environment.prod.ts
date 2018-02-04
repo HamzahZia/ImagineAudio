@@ -15,5 +15,7 @@ export const environment = {
     projectId: "qhacks18",
     storageBucket: "qhacks18.appspot.com",
     messagingSenderId: "116821688573"
-  }
+  },
+  IBM_S2T_USERNAME: "6a859c4c-948f-4a97-a2ae-de8c64f61d99",
+  IBM_S2T_PASSWORD: "IquS3NSBCZ02"
 };

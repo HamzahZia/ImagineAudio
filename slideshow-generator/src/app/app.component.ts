@@ -1,12 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { PACKAGE_ROOT_URL } from '@angular/core/src/application_tokens';
 import { timeout } from 'q';
+import { environment } from '../environments/environment';
+import { AuthorizationV1 } from './authorization-v1'
 declare var MediaRecorder: any;
 declare var require: any;
 // declare var Microm: any;
 let https = require('https');
 let _microm = require('microm');
 let microm = new _microm();
+let fs = require('fs');
+let recognizeFile = require('watson-speech/speech-to-text/recognize-file');
 
 @Component({
   selector: 'app-root',
@@ -227,3 +231,32 @@ var ex = {
   ],
   "errors": [  ]
 };
+var authorization = new AuthorizationV1  ({
+	username: environment.IBM_S2T_USERNAME,
+	password: environment.IBM_S2T_PASSWORD,
+	url: "https://stream.watsonplatform.net/speech-to-text/api"
+});
+function getMetaData (url, callback) {
+	authorization.getToken(function (err, token) {
+		if (!token) {
+			console.log('error:', err);
+		} else {
+			//console.log(token);
+			var stream = new recognizeFile({
+				token: token,
+				file: 'http://www.sound-mind.org/media-files/self-talk-for-worry-mp3.mp3',  //'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+				'content-type': 'audio/mp3',
+				timestamps: true,
+				realtime: false,
+				objectMode: true,
+				extract_results: true
+			});
+			stream.on('data', function(data) {
+				console.log(JSON.stringify(data, null, 2));
+			});
+			stream.on('error', function(err) {
+				console.log(err);
+			});
+		}
+  }, null);
+}

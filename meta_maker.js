@@ -11,9 +11,8 @@ var speech_to_text = new SpeechToTextV1 ({
 
 
 function getMetaData (url, callback) {
-    https.get(url, res => res.pipe(fs.createWriteStream("something.mp3")));
     var params = {
-	audio: fs.createReadStream("something.mp3"),
+	audio: fs.createReadStream(url),
 	content_type: 'audio/mp3',
 	timestamps: true
     };

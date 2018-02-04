@@ -1,0 +1,31 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<div style="text-align:center">
+  <mat-toolbar color="primary">Cool Video Generator</mat-toolbar>
+</div>
+<div *ngIf="setup">
+  <div style="text-align: center">
+    <h2> Record yourself singing and we'll make you a video! </h2>
+  </div>
+  <div style="text-align: center">
+    <svg *ngIf="recording" class="mic" color="red" (click)="toggleRecord()" xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24"><path fill="#F00" d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/></svg>
+    <svg *ngIf="!recording" class="mic" (click)="toggleRecord()" xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24"><path d="M12 2c1.103 0 2 .897 2 2v7c0 1.103-.897 2-2 2s-2-.897-2-2v-7c0-1.103.897-2 2-2zm0-2c-2.209 0-4 1.791-4 4v7c0 2.209 1.791 4 4 4s4-1.791 4-4v-7c0-2.209-1.791-4-4-4zm8 9v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/></svg>
+  </div>
+  <div style="text-align: center">
+    <h3> {{getTime()}} </h3>
+  </div>
+  <div>
+    <div class="spacer"></div>
+    <div class="clip">
+    </div>
+  </div>
+  <div style="text-align: center" *ngIf="recorded">
+    <p>If you are happy with your audio, click Create Video!</p>
+    <button color="primary" mat-raised-button>Create Video!</button>
+  </div>
+</div>
+<div *ngIf="!setup && loading">
+</div>
+<div *ngIf="!setup && !loading">
+  
+</div>
+

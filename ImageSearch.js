@@ -6,11 +6,13 @@ let subscriptionKey = 'd3e1721f257d4a7b90d06e0fff664ec3';
 let host = 'api.cognitive.microsoft.com';
 let path = '/bing/v7.0/images/search';
 
+let totalImages = 10;
+
 let bing_image_search = function (search, callback) {
   let request_params = {
         method : 'GET',
         hostname : host,
-        path : path + '?q=' + encodeURIComponent(search) + "&count=" + 1,
+        path : path + '?q=' + encodeURIComponent(search) + "&count=" + totalImages,
         headers : {
             'Ocp-Apim-Subscription-Key' : subscriptionKey,
         }
@@ -33,13 +35,18 @@ let bing_image_search = function (search, callback) {
   req.end();
 }
 
-function searchlyrics(lyrics, callback) {
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
+
+function searchLyrics(lyrics, callback) {
   var count = 0;
   lyrics.documents.forEach (line => {
     line["urls"] = {};
     line.keyPhrases.forEach (word => {
+      var random = getRandomInt(totalImages);
       bing_image_search(word, (result) => {
-        let url = result.value[0].thumbnailUrl;
+        let url = result.value[random].thumbnailUrl;
         line.urls[word] =  url;
       });
     });
@@ -53,38 +60,51 @@ function searchlyrics(lyrics, callback) {
 
 var ex = {
   "documents": [
-     {
-        "keyPhrases": [
-           "HDR resolution",
-           "new XBox",
-           "clean look"
-        ],
-        "id": "1"
-     },
-     {
-        "keyPhrases": [
-           "Carlos",
-           "notificacion",
-           "algun problema",
-           "telefono movil"
-        ],
-        "id": "2"
-     },
-     {
-        "keyPhrases": [
-           "new hotel",
-           "Grand Hotel",
-           "review",
-           "center of Seattle",
-           "classiest decor",
-           "stars"
-        ],
-        "id": "3"
-     }
+    {
+      "keyPhrases": [
+        "seconds",
+        "video",
+        "time",
+        "things"
+      ],
+      "id": "1",
+      "timestamps": {
+        "seconds": 3.39,
+        "video": 0.65,
+        "time": 5.99,
+        "things": 9.25
+      }
+    },
+    {
+      "keyPhrases": [
+        "seconds long distances",
+        "time"
+      ],
+      "id": "2",
+      "timestamps": {
+        "seconds long distances": 16,
+        "time": 18
+      }
+    },
+    {
+      "keyPhrases": [
+        "meditation",
+        "seconds"
+      ],
+      "id": "4",
+      "timestamps": {
+        "seconds": 28.86
+      }
+    }
   ],
-  "errors": [  ]
+  "errors": [
+    {
+      "id": "5",
+      "message": "Missing input documents."
+    }
+  ]
 };
 
-searchlyrics(ex, (finalLyrics) => {
+searchLyrics(ex, (finalLyrics) => {
   console.log(JSON.stringify(finalLyrics, null, 2));
 });

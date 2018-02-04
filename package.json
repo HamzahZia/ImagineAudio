@@ -1,0 +1,23 @@
+{
+  "name": "hotshots",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ImageSearch.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ImageSearch.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clener/hotshots.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/clener/hotshots/issues"
+  },
+  "homepage": "https://github.com/clener/hotshots#readme",
+  "dependencies": {
+    "https": "^1.0.0"
+  }
+}

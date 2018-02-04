@@ -170,7 +170,6 @@ export class AppComponent implements OnInit {
       let pic = document.createElement('img');
       console.log(imgArr[i]);
       pic.src = imgArr[i];
-      pic.
       pic.id = ""+i;
       document.querySelector('.images').appendChild(pic);
     }

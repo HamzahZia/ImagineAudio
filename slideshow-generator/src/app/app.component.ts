@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ApplicationRef } from '@angular/core';
 import { PACKAGE_ROOT_URL } from '@angular/core/src/application_tokens';
 import { timeout } from 'q';
 import { environment } from '../environments/environment';
@@ -49,7 +49,7 @@ export class AppComponent implements OnInit {
     '18': ['time', 'https://tse3-2.mm.bing.net/th?id=OIP.2uU_9gVSjW4RcV6RmL-T4wHaEq&pid=Api']
   }
 
-  constructor(private httpClient: HttpClient, private storage: AngularFireStorage) {
+  constructor(private httpClient: HttpClient, private storage: AngularFireStorage, private appRef: ApplicationRef) {
 
   }
   
@@ -145,6 +145,7 @@ export class AppComponent implements OnInit {
     this.currLoadingMessage = 0;
     console.log(this.mp3.url);
     this.httpClient.get('http://localhost:8090/' + this.downloadUrl).subscribe((result) => {
+      this.data = result;
       console.log(result);
     });
     this.counterInterval = setInterval(() => {
@@ -152,7 +153,7 @@ export class AppComponent implements OnInit {
       if (this.currLoadingMessage == this.loadingMessages.length) {
         clearInterval(this.counterInterval);
         this.loading = false; // Remove this when we have the api call
-        this.startDisplay(this.testData);
+        this.startDisplay(this.data);
       }
     }, 5000);
     // Make api call
@@ -163,7 +164,29 @@ export class AppComponent implements OnInit {
     let imgArr = [];
     for (let key in data) {
       timeArr.unshift(key);
-      imgArr.unshift(data);
+      imgArr.unshift(data[1]);
+    }
+    for (let i = 0; i < imgArr.length; i++) {
+      let pic = document.createElement('img');
+      console.log(imgArr[i]);
+      pic.src = imgArr[i];
+      pic.
+      pic.id = ""+i;
+      document.querySelector('.images').appendChild(pic);
+    }
+    this.appRef.tick();
+    console.log(timeArr);
+    console.log(imgArr);
+    let audio = document.createElement('audio');
+    audio.setAttribute('controls', '');
+    audio.className = "audio";
+    (audio as any).src = this.mp3.url;
+    document.querySelector('.clip2').appendChild(audio);
+    setTimeout(audio.play());
+    for (let i = 0; i < timeArr.length; i++) {
+        setTimeout(() => {
+          document.querySelector("#"+i).className = "invisible";
+        }, 1000*<any>timeArr[i]);
     }
   }
 
@@ -173,197 +196,4 @@ export class AppComponent implements OnInit {
     this.recorded = false;
     this.recording = false;
   }
-}
-
-
-var authorization = new AuthorizationV1 ({
-	username: environment.IBM_S2T_USERNAME,
-	password: environment.IBM_S2T_PASSWORD,
-	url: "https://stream.watsonplatform.net/speech-to-text/api"
-});
-
-function getMetaData (url, callback) {
-	var initialObj = {"results": []};
-	authorization.getToken(function (err, token) {
-		if (!token) {
-			console.log('error:', err);
-		} else {
-			//console.log(token);
-			var stream = new recognizeFile({
-				token: token,
-				file: url, //'http://www.sound-mind.org/media-files/self-talk-for-worry-mp3.mp3', 
-				'content-type': 'audio/mp3',
-				timestamps: true,
-				realtime: false,
-				objectMode: true,
-				extract_results: true
-			});
-			stream.on('data', function(data) {
-				//console.log(JSON.stringify(data, null, 2));
-				if (data.results[0].alternatives[0].transcript.indexOf(".") !== -1)
-					initialObj.results.push(data.results[0]);
-			});
-			stream.on('error', function(err) {
-				console.log(err);
-			});
-			stream.on('end', function() {
-				//console.log("DONE");
-				formatRes(initialObj, callback);
-			});
-		}
-	}, null);
-}
-/*var params = {
-  audio: fs.createReadStream(url),
-  content_type: 'audio/mp3',
-  timestamps: true
-  };i*/
-
-function find(s, array, callback) {
-	//console.log(s);
-	var word = s.split(' ');
-	var c = 0;
-	var done = false;
-	array.forEach(function (w) {
-	//console.log("word is " + w[0].trim());
-		if (w[0].trim() === word[c] && !done) {
-			c++;
-			if (c === word.length) {		
-				callback(w[1]);
-				done = true;
-			}
-		} else { c = 0; }
-	});
-}
-
-function formatRes(initialObj, callback) {
-//console.log(JSON.stringify(initialObj, null, 2));
-var lyrics = "";
-initialObj.results.forEach(function (sentence) {
-	lyrics += (sentence.alternatives[0].transcript.replace(/\./g,'') + '.');
-}); console.log(lyrics);
-
-get_key_phrases(lyrics, function(err, result) {
-	if (err)
-		console.log(err);
-	else {
-		//console.log(JSON.stringify(result, null, 2));
-		var c = 0;
-		result.documents.forEach(function (k) {
-			k['timestamps'] = {};
-			k.keyPhrases.forEach(function (j) {
-				find(j, initialObj.results[c].alternatives[0].timestamps, function (r) {
-					k.timestamps[j] = r;
-					//console.log(j + " ---- " + k.timestamps[j]);
-				});
-			}); c++;
-		});	
-		//console.log(JSON.stringify(result, null, 2));
-
-		searchlyrics(result, function (fullresults) {
-			// console.log(JSON.stringify(fullresults, null, 2));
-			var finalJSON = {};
-			fullresults.documents.forEach(function (id) {
-				id.keyPhrases.forEach(function (word) {
-					finalJSON[id.timestamps[word]] = [word, id.urls[word]];
-				});
-			});// console.log(JSON.stringify(finalJSON, null, 2));
-			callback(finalJSON);
-		});
-	}
-});
-}
-
-let accessKey = environment.TEXT_ANALYZER_KEY;
-let uri = 'eastus.api.cognitive.microsoft.com';
-let path = '/text/analytics/v2.0/keyPhrases';
-
-let get_key_phrases = function (documents, callback) {
-	var lines = documents.split('.');
-	var content = {'documents': [] };
-	var count = 1;
-	lines.forEach(function (line) {
-		content.documents.push({'id': count, 'language': 'en', 'text': line});
-		count++;
-	});
-
-	let body = JSON.stringify (content);
-
-	let request_params = {
-		method : 'POST',
-		hostname : uri,
-		path : path,
-		headers : {
-			'Ocp-Apim-Subscription-Key' : accessKey,
-		}
-	};
-
-	let req = https.request (request_params, function (response) {
-		let body = '';
-		response.on ('data', function (d) {
-			body += d;
-		});
-		response.on ('end', function () {
-			let body_ = JSON.parse (body);
-			//let body__ = JSON.stringify (body_, null, '  ');
-			//console.log (body__);
-			callback(null, body_);
-		});
-		response.on ('error', function (e) {
-			callback(e, null);
-			console.log ('Error: ' + e.message);
-		});
-	});
-
-	req.write (body);
-	req.end ();
-  }
-  
-  let subscriptionKey = process.env.BING_SEARCH;
-
-let host = 'api.cognitive.microsoft.com';
-
-let bing_image_search = function (search, callback) {
-  let request_params = {
-        method : 'GET',
-        hostname : host,
-        path : path + '?q=' + encodeURIComponent(search) + "&count=" + 1,
-        headers : {
-            'Ocp-Apim-Subscription-Key' : subscriptionKey,
-        }
-    };
-
-  let req = https.request(request_params, function (response) {
-    let body = '';
-    response.on('data', function (d) {
-        body += d;
-    });
-    response.on('end', function () {
-        body = JSON.parse(body);
-        callback(body);
-    });
-    response.on('error', function (e) {
-        console.log('Error: ' + e.message);
-    });
-  });
-
-  req.end();
-}
-
-function searchlyrics(lyrics, callback) {
-  var count = 0;
-  lyrics.documents.forEach (line => {
-    line["urls"] = {};
-    line.keyPhrases.forEach (word => {
-      bing_image_search(word, (result) => {
-        let url = result.value[0].thumbnailUrl;
-        line.urls[word] =  url;
-      });
-    });
-    count++;
-  });
-
-  setTimeout(() => {
-    callback(lyrics)
-  }, count*1000);
 }

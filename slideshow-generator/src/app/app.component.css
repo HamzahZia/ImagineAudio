@@ -5,3 +5,7 @@
     margin: auto;
     width: min-content;
 }
+
+.invisible {
+    display: none;
+}

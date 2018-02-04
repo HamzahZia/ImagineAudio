@@ -22,9 +22,7 @@
       "styles": [
         "styles.css"
       ],
-      "scripts": [
-        "assets/ImageSearch.js"
-      ],
+      "scripts": [],
       "environmentSource": "environments/environment.ts",
       "environments": {
         "dev": "environments/environment.ts",

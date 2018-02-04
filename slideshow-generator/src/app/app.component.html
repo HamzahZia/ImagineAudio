@@ -1,6 +1,6 @@
 <!--The content below is only a placeholder and can be replaced.-->
 <div style="text-align:center">
-  <mat-toolbar color="primary">Cool Video Generator</mat-toolbar>
+  <mat-toolbar color="primary">Imagine Audio</mat-toolbar>
 </div>
 <div *ngIf="setup">
   <div style="text-align: center">
@@ -20,12 +20,18 @@
   </div>
   <div style="text-align: center" *ngIf="recorded">
     <p>If you are happy with your audio, click Create Video!</p>
-    <button color="primary" mat-raised-button>Create Video!</button>
+    <button (click)="getImages()" color="primary" mat-raised-button>Create Video!</button>
   </div>
 </div>
-<div *ngIf="!setup && loading">
+<div *ngIf="!setup && loading" style="text-align: center">
+  <p>{{loadingMessages[currLoadingMessage]}}</p>
+  <mat-spinner style="margin: auto;"></mat-spinner>
 </div>
-<div *ngIf="!setup && !loading">
-  
+<div *ngIf="!setup && !loading" style="text-align: center">
+  <p>Our cool images that we came up with!!</p>
+  <div class="custom-images"></div>
+  <div class="reset">
+    <button mat-raised-button (click)="reset()">Reset</button>
+  </div>
 </div>
 

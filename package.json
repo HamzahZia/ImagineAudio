@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/clener/hotshots#readme",
   "dependencies": {
-    "https": "^1.0.0"
+    "https": "^1.0.0",
+    "microm": "^0.2.4"
   }
 }

@@ -21,6 +21,8 @@
     "dotenv": "^5.0.0",
     "https": "^1.0.0",
     "watson-developer-cloud": "^3.0.5",
-    "watson-speech": "^0.34.1"
+    "watson-speech": "^0.34.1",
+    "https": "^1.0.0",
+    "microm": "^0.2.4"
   }
 }

@@ -108,13 +108,12 @@ export class AppComponent implements OnInit {
       this.counterInterval = setInterval(() => this.timer+=1, 1000);
     } else {
       // this.mediaRecorder.stop();
-      this.recorded = true;
       microm.stop().then((result) => {
         this.mp3 = result;
         console.log(this.mp3.url, this.mp3.blob, this.mp3.buffer)
         clearInterval(this.counterInterval);
         this.timer = 0;
-        this.recorded = true;
+        // this.recorded = true;
         let audio = document.querySelector(".audio");
         if (!audio) {
           audio = document.createElement('audio');
@@ -128,6 +127,8 @@ export class AppComponent implements OnInit {
         task.downloadURL().subscribe(result => {
           this.downloadUrl = result;
           console.log(result);
+          this.recorded = true;
+          this.appRef.tick();
         })
       })
     }
@@ -201,8 +202,9 @@ export class AppComponent implements OnInit {
     setTimeout(audio.play());
     for (let i = 0; i < timeArr.length; i++) {
         setTimeout(() => {
-          if (i != 0) {
-            document.querySelector(".static-image").remove();
+          let togo = document.querySelector(".static-image");
+          if (togo) {
+            togo.remove();
           }
           let pic = document.createElement('img');
           pic.src = imgArr[i];

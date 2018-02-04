@@ -19,7 +19,10 @@
   "dependencies": {
     "cognitive-services": "^0.6.2",
     "dotenv": "^5.0.0",
+    "http": "0.0.0",
+    "https": "^1.0.0",
+    "microm": "^0.2.4",
     "watson-developer-cloud": "^3.0.5",
-    "https": "^1.0.0"
+    "watson-speech": "^0.34.1"
   }
 }

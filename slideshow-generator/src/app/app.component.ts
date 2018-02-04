@@ -174,6 +174,10 @@ export class AppComponent implements OnInit {
     let timeArr = [];
     let imgArr = [];
     for (let key in data) {
+      if (key == undefined) {
+        console.log("Skipped key");
+        continue;
+      }
       timeArr.unshift(key);
       imgArr.unshift(data[key][1]);
     }
@@ -214,5 +218,6 @@ export class AppComponent implements OnInit {
     this.setup = true;
     this.recorded = false;
     this.recording = false;
+    document.querySelector("static-image").remove();
   }
 }

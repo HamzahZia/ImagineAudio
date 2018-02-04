@@ -51,20 +51,18 @@ http.createServer(function (req, res) {
     }
 
 
-
-
-
-
   let subscriptionKey = "d3e1721f257d4a7b90d06e0fff664ec3";
 
   let host = 'api.cognitive.microsoft.com';
   let path2 = '/bing/v7.0/images/search';
   
+  let totalImages = 10;
+  
   let bing_image_search = function (search, callback) {
     let request_params = {
           method : 'GET',
           hostname : host,
-          path : path2 + '?q=' + encodeURIComponent(search) + "&count=" + 1,
+          path : path2 + '?q=' + encodeURIComponent(search) + "&count=" + totalImages,
           headers : {
               'Ocp-Apim-Subscription-Key' : subscriptionKey,
           }
@@ -87,13 +85,18 @@ http.createServer(function (req, res) {
     req.end();
   }
   
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+  }
+  
   function getImages(lyrics, callback) {
     var count = 0;
     lyrics.documents.forEach (line => {
       line["urls"] = {};
       line.keyPhrases.forEach (word => {
+        var random = getRandomInt(totalImages);
         bing_image_search(word, (result) => {
-          let url = result.value[0].thumbnailUrl;
+          let url = result.value[random].thumbnailUrl;
           line.urls[word] =  url;
         });
       });

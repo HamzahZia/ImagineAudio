@@ -36,12 +36,11 @@ let bing_image_search = function (search, callback) {
 function searchlyrics(lyrics, callback) {
   var count = 0;
   lyrics.documents.forEach (line => {
-    line["urls"] = [];
+    line["urls"] = {};
     line.keyPhrases.forEach (word => {
       bing_image_search(word, (result) => {
         let url = result.value[0].thumbnailUrl;
-        line.urls.push(url); 
-        console.log(url)
+        line.urls[word] =  url;
       });
     });
     count++;

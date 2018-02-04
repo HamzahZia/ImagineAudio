@@ -1,5 +1,6 @@
 require('dotenv').config();
 var keyword = require('./keyWordExtracter.js');
+var image_finder = require('./ImageSearch.js');
 var SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
 var fs = require('fs');
 var speech_to_text = new SpeechToTextV1 ({
@@ -14,7 +15,7 @@ var params = {
 };
 
 function find(s, array, callback) {
-    console.log(s);
+    //console.log(s);
     var word = s.split(' ');
     var c = 0;
     var done = false;
@@ -23,8 +24,8 @@ function find(s, array, callback) {
 	if (w[0] === word[c] && !done) {
 	    c++;
 	    if (c === word.length) {		
-	    	callback(w[1]);
-	   	done = true;
+		callback(w[1]);
+		done = true;
 	    }
 	} else { c = 0; }
     });
@@ -34,7 +35,7 @@ speech_to_text.recognize(params, function(err, res) {
     if (err)
 	console.log(err);
     else {
-	console.log(JSON.stringify(res, null, 2));
+	//console.log(JSON.stringify(res, null, 2));
 	var lyrics = "";
 	res.results.forEach(function (sentence) {
 	    lyrics += (sentence.alternatives[0].transcript + '.');
@@ -44,7 +45,7 @@ speech_to_text.recognize(params, function(err, res) {
 	    if (err)
 		console.log(err);
 	    else {
-		console.log(result);
+		//console.log(result);
 		var c = 0;
 		result.documents.forEach(function (k) {
 		    k['timestamps'] = {};
@@ -55,10 +56,13 @@ speech_to_text.recognize(params, function(err, res) {
 			});
 		    }); c++;
 		});	
-	    }
-	    console.log(JSON.stringify(result, null, 2));
-	});
+		//console.log(JSON.stringify(result, null, 2));
 
+		image_finder.getImages(result, function (fullresults) {
+		    console.log(JSON.stringify(fullresults, null, 2));
+		});
+	    }
+	});
     }
 });
 

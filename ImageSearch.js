@@ -1,7 +1,7 @@
 'use strict';
-
+require('dotenv').config()
 let https = require('https');
-let subscriptionKey = 'd3e1721f257d4a7b90d06e0fff664ec3';
+let subscriptionKey = process.env.BING_SEARCH;
 
 let host = 'api.cognitive.microsoft.com';
 let path = '/bing/v7.0/images/search';
@@ -51,6 +51,7 @@ function searchlyrics(lyrics, callback) {
   }, count*1000);
 }
 
+/*
 var ex = {
   "documents": [
      {
@@ -83,8 +84,12 @@ var ex = {
      }
   ],
   "errors": [  ]
-};
+}; 
 
 searchlyrics(ex, (finalLyrics) => {
   console.log(JSON.stringify(finalLyrics, null, 2));
-});
+}); */
+
+module.exports = {
+	getImages: searchlyrics
+};

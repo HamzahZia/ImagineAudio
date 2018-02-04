@@ -1,7 +1,7 @@
 'use strict';
-
+require('dotenv').config()
 let https = require('https');
-let subscriptionKey = 'd3e1721f257d4a7b90d06e0fff664ec3';
+let subscriptionKey = process.env.BING_SEARCH;
 
 let host = 'api.cognitive.microsoft.com';
 let path = '/bing/v7.0/images/search';
@@ -58,53 +58,10 @@ function searchLyrics(lyrics, callback) {
   }, count*1000);
 }
 
-var ex = {
-  "documents": [
-    {
-      "keyPhrases": [
-        "seconds",
-        "video",
-        "time",
-        "things"
-      ],
-      "id": "1",
-      "timestamps": {
-        "seconds": 3.39,
-        "video": 0.65,
-        "time": 5.99,
-        "things": 9.25
-      }
-    },
-    {
-      "keyPhrases": [
-        "seconds long distances",
-        "time"
-      ],
-      "id": "2",
-      "timestamps": {
-        "seconds long distances": 16,
-        "time": 18
-      }
-    },
-    {
-      "keyPhrases": [
-        "meditation",
-        "seconds"
-      ],
-      "id": "4",
-      "timestamps": {
-        "seconds": 28.86
-      }
-    }
-  ],
-  "errors": [
-    {
-      "id": "5",
-      "message": "Missing input documents."
-    }
-  ]
-};
-
-searchLyrics(ex, (finalLyrics) => {
+/*searchLyrics(ex, (finalLyrics) => {
   console.log(JSON.stringify(finalLyrics, null, 2));
-});
+}); */
+
+module.exports = {
+	getImages: searchlyrics
+};

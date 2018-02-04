@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/clener/hotshots#readme",
   "dependencies": {
+    "cognitive-services": "^0.6.2",
+    "dotenv": "^5.0.0",
+    "watson-developer-cloud": "^3.0.5",
     "https": "^1.0.0"
   }
 }

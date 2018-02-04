@@ -35,7 +35,13 @@
     "ng-gapi": "^0.0.45",
     "rxjs": "^5.5.6",
     "youtube-player": "^5.4.0",
-    "zone.js": "^0.8.19"
+    "zone.js": "^0.8.19",
+    "cognitive-services": "^0.6.2",
+    "dotenv": "^5.0.0",
+    "https": "^1.0.0",
+    "watson-developer-cloud": "^3.0.5",
+    "watson-speech": "^0.34.1",
+    "microm": "^0.2.4"
   },
   "devDependencies": {
     "@angular/cli": "1.6.7",

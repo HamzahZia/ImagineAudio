@@ -5,3 +5,17 @@
     margin: auto;
     width: min-content;
 }
+
+.invisible {
+    display: none;
+}
+
+.images {
+    margin: auto;
+    width: fit-content;
+}
+
+.clip2 {
+    margin: auto;
+    width: fit-content;
+}

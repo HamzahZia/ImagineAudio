@@ -16,6 +16,8 @@ import { AngularFireModule } from 'angularfire2';
 
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
+import { AngularFireStorageModule } from 'angularfire2/storage';
+
 
 @NgModule({
   declarations: [
@@ -28,6 +30,7 @@ import { environment } from '../environments/environment';
     ServiceWorkerModule.register('/ngsw-worker.js', {enabled: environment.production}),
     FormsModule,
     ReactiveFormsModule,
+    AngularFireStorageModule,
     MatInputModule,
     MatToolbarModule,
     MatButtonModule,

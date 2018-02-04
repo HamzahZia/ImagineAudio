@@ -1,12 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ApplicationRef } from '@angular/core';
 import { PACKAGE_ROOT_URL } from '@angular/core/src/application_tokens';
 import { timeout } from 'q';
+import { environment } from '../environments/environment';
+import { AuthorizationV1 } from './authorization-v1'
+import { HttpClient } from '@angular/common/http';
+import { AngularFireStorage } from 'angularfire2/storage';
+
 declare var MediaRecorder: any;
 declare var require: any;
 // declare var Microm: any;
 let https = require('https');
 let _microm = require('microm');
 let microm = new _microm();
+let fs = require('fs');
+let recognizeFile = require('watson-speech/speech-to-text/recognize-file');
+
 
 @Component({
   selector: 'app-root',
@@ -25,12 +33,15 @@ export class AppComponent implements OnInit {
     'Almost Ready...'
   ];
   currLoadingMessage = 0;
+  data;
 
   mediaRecorder;
   chunks = [];
   counterInterval;
   timer = 0;
   mp3 = null;
+  filename: string;
+  downloadUrl;
 
   testData = {
     '3.39': ['seconds', 'https://tse4.mm.bing.net/th?id=OIP.eh2ion-vSVMYPsseEIjRtgHaHa&pid=Api'],
@@ -38,8 +49,18 @@ export class AppComponent implements OnInit {
     '18': ['time', 'https://tse3-2.mm.bing.net/th?id=OIP.2uU_9gVSjW4RcV6RmL-T4wHaEq&pid=Api']
   }
 
-  constructor() {
+  constructor(private httpClient: HttpClient, private storage: AngularFireStorage, private appRef: ApplicationRef) {
 
+  }
+  
+  makeid() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+    for (var i = 0; i < 5; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+    return text;
   }
 
   ngOnInit() {
@@ -87,6 +108,7 @@ export class AppComponent implements OnInit {
       this.counterInterval = setInterval(() => this.timer+=1, 1000);
     } else {
       // this.mediaRecorder.stop();
+      this.recorded = true;
       microm.stop().then((result) => {
         this.mp3 = result;
         console.log(this.mp3.url, this.mp3.blob, this.mp3.buffer)
@@ -101,6 +123,12 @@ export class AppComponent implements OnInit {
         }        
         (audio as any).src = this.mp3.url;
         document.querySelector('.clip').appendChild(audio);
+        this.filename = this.makeid();
+        const task = this.storage.upload(this.filename, this.mp3.blob);
+        task.downloadURL().subscribe(result => {
+          this.downloadUrl = result;
+          console.log(result);
+        })
       })
     }
   }
@@ -115,12 +143,28 @@ export class AppComponent implements OnInit {
     this.loading = true;
     this.setup = false;
     this.currLoadingMessage = 0;
-    this.counterInterval = setInterval(() => {
-      this.currLoadingMessage = Math.min(this.currLoadingMessage + 1, this.loadingMessages.length);
-      if (this.currLoadingMessage == this.loadingMessages.length) {
+    let dataRecieved = false;
+    let intervalDone = false;
+    console.log(this.mp3.url);
+    this.httpClient.get('http://localhost:8090/' + this.downloadUrl).subscribe((result) => {
+      console.log(result);
+      this.data = result;
+      dataRecieved = true;
+      if (intervalDone) {
+        this.startDisplay(this.data);
         clearInterval(this.counterInterval);
-        this.loading = false; // Remove this when we have the api call
-        this.startDisplay(this.testData);
+        this.loading = false; 
+      }
+    });
+    this.counterInterval = setInterval(() => {
+      this.currLoadingMessage = Math.min(this.currLoadingMessage + 1, this.loadingMessages.length-1);
+      if (this.currLoadingMessage >= this.loadingMessages.length) {
+        intervalDone = true;
+      }
+      if (dataRecieved) {
+        clearInterval(this.counterInterval);
+        this.startDisplay(this.data);
+        this.loading = false; 
       }
     }, 5000);
     // Make api call
@@ -131,7 +175,37 @@ export class AppComponent implements OnInit {
     let imgArr = [];
     for (let key in data) {
       timeArr.unshift(key);
-      imgArr.unshift(data);
+      imgArr.unshift(data[key][1]);
+    }
+    // for (let i = 0; i < imgArr.length; i++) {
+    //   let pic = document.createElement('img');
+    //   console.log(imgArr[i]);
+    //   pic.src = imgArr[i];
+    //   pic.id = ""+i;
+    //   pic.className = "static-image";
+    //   pic.style.zIndex = "-"+i;
+    //   document.querySelector('.images').appendChild(pic);
+    // }
+    this.appRef.tick();
+    console.log(timeArr);
+    console.log(imgArr);
+    let audio = document.createElement('audio');
+    audio.setAttribute('controls', '');
+    audio.className = "audio";
+    (audio as any).src = this.mp3.url;
+    document.querySelector('.clip2').appendChild(audio);
+    setTimeout(audio.play());
+    for (let i = 0; i < timeArr.length; i++) {
+        setTimeout(() => {
+          if (i != 0) {
+            document.querySelector(".static-image").remove();
+          }
+          let pic = document.createElement('img');
+          pic.src = imgArr[i];
+          pic.className = "static-image";
+          document.querySelector('.images').appendChild(pic);
+          this.appRef.tick();
+        }, 1000*<any>timeArr[i]);
     }
   }
 
@@ -142,88 +216,3 @@ export class AppComponent implements OnInit {
     this.recording = false;
   }
 }
-
-let subscriptionKey = 'd3e1721f257d4a7b90d06e0fff664ec3';
-
-let host = 'api.cognitive.microsoft.com';
-let path = '/bing/v7.0/images/search';
-
-let bing_image_search = function (search, callback) {
-  let request_params = {
-        method : 'GET',
-        hostname : host,
-        path : path + '?q=' + encodeURIComponent(search) + "&count=" + 1,
-        headers : {
-            'Ocp-Apim-Subscription-Key' : subscriptionKey,
-        }
-    };
-
-  let req = https.request(request_params, function (response) {
-    let body = '';
-    response.on('data', function (d) {
-        body += d;
-    });
-    response.on('end', function () {
-        body = JSON.parse(body);
-        callback(body);
-    });
-    response.on('error', function (e) {
-        console.log('Error: ' + e.message);
-    });
-  });
-
-  req.end();
-}
-
-function searchlyrics(lyrics, callback) {
-  var count = 0;
-  lyrics.documents.forEach (line => {
-    line["urls"] = [];
-    line.keyPhrases.forEach (word => {
-      bing_image_search(word, (result) => {
-        let url = result.value[0].thumbnailUrl;
-        line.urls.push(url); 
-        console.log(url)
-      });
-    });
-    count++;
-  });
-
-  setTimeout(() => {
-    callback(lyrics)
-  }, count*1000);
-}
-
-var ex = {
-  "documents": [
-     {
-        "keyPhrases": [
-           "HDR resolution",
-           "new XBox",
-           "clean look"
-        ],
-        "id": "1"
-     },
-     {
-        "keyPhrases": [
-           "Carlos",
-           "notificacion",
-           "algun problema",
-           "telefono movil"
-        ],
-        "id": "2"
-     },
-     {
-        "keyPhrases": [
-           "new hotel",
-           "Grand Hotel",
-           "review",
-           "center of Seattle",
-           "classiest decor",
-           "stars"
-        ],
-        "id": "3"
-     }
-  ],
-  "errors": [  ]
-};

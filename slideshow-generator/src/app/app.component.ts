@@ -3,6 +3,9 @@ import { PACKAGE_ROOT_URL } from '@angular/core/src/application_tokens';
 import { timeout } from 'q';
 import { environment } from '../environments/environment';
 import { AuthorizationV1 } from './authorization-v1'
+import { HttpClient } from '@angular/common/http';
+import { AngularFireStorage } from 'angularfire2/storage';
+
 declare var MediaRecorder: any;
 declare var require: any;
 // declare var Microm: any;
@@ -11,6 +14,7 @@ let _microm = require('microm');
 let microm = new _microm();
 let fs = require('fs');
 let recognizeFile = require('watson-speech/speech-to-text/recognize-file');
+
 
 @Component({
   selector: 'app-root',
@@ -29,12 +33,15 @@ export class AppComponent implements OnInit {
     'Almost Ready...'
   ];
   currLoadingMessage = 0;
+  data;
 
   mediaRecorder;
   chunks = [];
   counterInterval;
   timer = 0;
   mp3 = null;
+  filename: string;
+  downloadUrl;
 
   testData = {
     '3.39': ['seconds', 'https://tse4.mm.bing.net/th?id=OIP.eh2ion-vSVMYPsseEIjRtgHaHa&pid=Api'],
@@ -42,8 +49,18 @@ export class AppComponent implements OnInit {
     '18': ['time', 'https://tse3-2.mm.bing.net/th?id=OIP.2uU_9gVSjW4RcV6RmL-T4wHaEq&pid=Api']
   }
 
-  constructor() {
+  constructor(private httpClient: HttpClient, private storage: AngularFireStorage) {
 
+  }
+  
+  makeid() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+    for (var i = 0; i < 5; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+    return text;
   }
 
   ngOnInit() {
@@ -91,6 +108,7 @@ export class AppComponent implements OnInit {
       this.counterInterval = setInterval(() => this.timer+=1, 1000);
     } else {
       // this.mediaRecorder.stop();
+      this.recorded = true;
       microm.stop().then((result) => {
         this.mp3 = result;
         console.log(this.mp3.url, this.mp3.blob, this.mp3.buffer)
@@ -105,6 +123,12 @@ export class AppComponent implements OnInit {
         }        
         (audio as any).src = this.mp3.url;
         document.querySelector('.clip').appendChild(audio);
+        this.filename = this.makeid();
+        const task = this.storage.upload(this.filename, this.mp3.blob);
+        task.downloadURL().subscribe(result => {
+          this.downloadUrl = result;
+          console.log(result);
+        })
       })
     }
   }
@@ -119,6 +143,10 @@ export class AppComponent implements OnInit {
     this.loading = true;
     this.setup = false;
     this.currLoadingMessage = 0;
+    console.log(this.mp3.url);
+    this.httpClient.get('http://localhost:8090/' + this.downloadUrl).subscribe((result) => {
+      console.log(result);
+    });
     this.counterInterval = setInterval(() => {
       this.currLoadingMessage = Math.min(this.currLoadingMessage + 1, this.loadingMessages.length);
       if (this.currLoadingMessage == this.loadingMessages.length) {
@@ -147,10 +175,153 @@ export class AppComponent implements OnInit {
   }
 }
 
-let subscriptionKey = 'd3e1721f257d4a7b90d06e0fff664ec3';
+
+var authorization = new AuthorizationV1 ({
+	username: environment.IBM_S2T_USERNAME,
+	password: environment.IBM_S2T_PASSWORD,
+	url: "https://stream.watsonplatform.net/speech-to-text/api"
+});
+
+function getMetaData (url, callback) {
+	var initialObj = {"results": []};
+	authorization.getToken(function (err, token) {
+		if (!token) {
+			console.log('error:', err);
+		} else {
+			//console.log(token);
+			var stream = new recognizeFile({
+				token: token,
+				file: url, //'http://www.sound-mind.org/media-files/self-talk-for-worry-mp3.mp3', 
+				'content-type': 'audio/mp3',
+				timestamps: true,
+				realtime: false,
+				objectMode: true,
+				extract_results: true
+			});
+			stream.on('data', function(data) {
+				//console.log(JSON.stringify(data, null, 2));
+				if (data.results[0].alternatives[0].transcript.indexOf(".") !== -1)
+					initialObj.results.push(data.results[0]);
+			});
+			stream.on('error', function(err) {
+				console.log(err);
+			});
+			stream.on('end', function() {
+				//console.log("DONE");
+				formatRes(initialObj, callback);
+			});
+		}
+	}, null);
+}
+/*var params = {
+  audio: fs.createReadStream(url),
+  content_type: 'audio/mp3',
+  timestamps: true
+  };i*/
+
+function find(s, array, callback) {
+	//console.log(s);
+	var word = s.split(' ');
+	var c = 0;
+	var done = false;
+	array.forEach(function (w) {
+	//console.log("word is " + w[0].trim());
+		if (w[0].trim() === word[c] && !done) {
+			c++;
+			if (c === word.length) {		
+				callback(w[1]);
+				done = true;
+			}
+		} else { c = 0; }
+	});
+}
+
+function formatRes(initialObj, callback) {
+//console.log(JSON.stringify(initialObj, null, 2));
+var lyrics = "";
+initialObj.results.forEach(function (sentence) {
+	lyrics += (sentence.alternatives[0].transcript.replace(/\./g,'') + '.');
+}); console.log(lyrics);
+
+get_key_phrases(lyrics, function(err, result) {
+	if (err)
+		console.log(err);
+	else {
+		//console.log(JSON.stringify(result, null, 2));
+		var c = 0;
+		result.documents.forEach(function (k) {
+			k['timestamps'] = {};
+			k.keyPhrases.forEach(function (j) {
+				find(j, initialObj.results[c].alternatives[0].timestamps, function (r) {
+					k.timestamps[j] = r;
+					//console.log(j + " ---- " + k.timestamps[j]);
+				});
+			}); c++;
+		});	
+		//console.log(JSON.stringify(result, null, 2));
+
+		searchlyrics(result, function (fullresults) {
+			// console.log(JSON.stringify(fullresults, null, 2));
+			var finalJSON = {};
+			fullresults.documents.forEach(function (id) {
+				id.keyPhrases.forEach(function (word) {
+					finalJSON[id.timestamps[word]] = [word, id.urls[word]];
+				});
+			});// console.log(JSON.stringify(finalJSON, null, 2));
+			callback(finalJSON);
+		});
+	}
+});
+}
+
+let accessKey = environment.TEXT_ANALYZER_KEY;
+let uri = 'eastus.api.cognitive.microsoft.com';
+let path = '/text/analytics/v2.0/keyPhrases';
+
+let get_key_phrases = function (documents, callback) {
+	var lines = documents.split('.');
+	var content = {'documents': [] };
+	var count = 1;
+	lines.forEach(function (line) {
+		content.documents.push({'id': count, 'language': 'en', 'text': line});
+		count++;
+	});
+
+	let body = JSON.stringify (content);
+
+	let request_params = {
+		method : 'POST',
+		hostname : uri,
+		path : path,
+		headers : {
+			'Ocp-Apim-Subscription-Key' : accessKey,
+		}
+	};
+
+	let req = https.request (request_params, function (response) {
+		let body = '';
+		response.on ('data', function (d) {
+			body += d;
+		});
+		response.on ('end', function () {
+			let body_ = JSON.parse (body);
+			//let body__ = JSON.stringify (body_, null, '  ');
+			//console.log (body__);
+			callback(null, body_);
+		});
+		response.on ('error', function (e) {
+			callback(e, null);
+			console.log ('Error: ' + e.message);
+		});
+	});
+
+	req.write (body);
+	req.end ();
+  }
+  
+  let subscriptionKey = process.env.BING_SEARCH;
 
 let host = 'api.cognitive.microsoft.com';
-let path = '/bing/v7.0/images/search';
 
 let bing_image_search = function (search, callback) {
   let request_params = {
@@ -182,12 +353,11 @@ let bing_image_search = function (search, callback) {
 function searchlyrics(lyrics, callback) {
   var count = 0;
   lyrics.documents.forEach (line => {
-    line["urls"] = [];
+    line["urls"] = {};
     line.keyPhrases.forEach (word => {
       bing_image_search(word, (result) => {
         let url = result.value[0].thumbnailUrl;
-        line.urls.push(url); 
-        console.log(url)
+        line.urls[word] =  url;
       });
     });
     count++;
@@ -196,67 +366,4 @@ function searchlyrics(lyrics, callback) {
   setTimeout(() => {
     callback(lyrics)
   }, count*1000);
-}
-
-var ex = {
-  "documents": [
-     {
-        "keyPhrases": [
-           "HDR resolution",
-           "new XBox",
-           "clean look"
-        ],
-        "id": "1"
-     },
-     {
-        "keyPhrases": [
-           "Carlos",
-           "notificacion",
-           "algun problema",
-           "telefono movil"
-        ],
-        "id": "2"
-     },
-     {
-        "keyPhrases": [
-           "new hotel",
-           "Grand Hotel",
-           "review",
-           "center of Seattle",
-           "classiest decor",
-           "stars"
-        ],
-        "id": "3"
-     }
-  ],
-  "errors": [  ]
-};
-var authorization = new AuthorizationV1  ({
-	username: environment.IBM_S2T_USERNAME,
-	password: environment.IBM_S2T_PASSWORD,
-	url: "https://stream.watsonplatform.net/speech-to-text/api"
-});
-function getMetaData (url, callback) {
-	authorization.getToken(function (err, token) {
-		if (!token) {
-			console.log('error:', err);
-		} else {
-			//console.log(token);
-			var stream = new recognizeFile({
-				token: token,
-				file: 'http://www.sound-mind.org/media-files/self-talk-for-worry-mp3.mp3',  //'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-				'content-type': 'audio/mp3',
-				timestamps: true,
-				realtime: false,
-				objectMode: true,
-				extract_results: true
-			});
-			stream.on('data', function(data) {
-				console.log(JSON.stringify(data, null, 2));
-			});
-			stream.on('error', function(err) {
-				console.log(err);
-			});
-		}
-  }, null);
 }

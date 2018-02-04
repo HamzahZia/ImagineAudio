@@ -7,7 +7,7 @@ let uri = 'eastus.api.cognitive.microsoft.com';
 let path = '/text/analytics/v2.0/keyPhrases';
 
 let get_key_phrases = function (documents, callback) {
-	var lines = documents.split('\n');
+	var lines = documents.split('.');
 	var content = {'documents': [] };
 	var count = 1;
 	lines.forEach(function (line) {
@@ -33,9 +33,9 @@ let get_key_phrases = function (documents, callback) {
 		});
 		response.on ('end', function () {
 			let body_ = JSON.parse (body);
-			let body__ = JSON.stringify (body_, null, '  ');
+			//let body__ = JSON.stringify (body_, null, '  ');
 			//console.log (body__);
-			callback(null, body__);
+			callback(null, body_);
 		});
 		response.on ('error', function (e) {
 			callback(e, null);

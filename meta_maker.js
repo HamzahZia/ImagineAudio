@@ -30,13 +30,14 @@ function getMetaData (url, callback) {
 			});
 			stream.on('data', function(data) {
 				//console.log(JSON.stringify(data, null, 2));
-				initialObj.results.push(data.results[0]);
+				if (data.results[0].alternatives[0].transcript.indexOf(".") !== -1)
+					initialObj.results.push(data.results[0]);
 			});
 			stream.on('error', function(err) {
 				console.log(err);
 			});
 			stream.on('end', function() {
-				console.log("DONE");
+				//console.log("DONE");
 				formatRes(initialObj, callback);
 			});
 		}
@@ -54,8 +55,8 @@ function find(s, array, callback) {
 	var c = 0;
 	var done = false;
 	array.forEach(function (w) {
-	//	console.log("word is " + w[0]);
-		if (w[0] === word[c] && !done) {
+	//console.log("word is " + w[0].trim());
+		if (w[0].trim() === word[c] && !done) {
 			c++;
 			if (c === word.length) {		
 				callback(w[1]);
@@ -66,17 +67,17 @@ function find(s, array, callback) {
 }
 
 function formatRes(initialObj, callback) {
-console.log(JSON.stringify(initialObj, null, 2));
+//console.log(JSON.stringify(initialObj, null, 2));
 var lyrics = "";
 initialObj.results.forEach(function (sentence) {
 	lyrics += (sentence.alternatives[0].transcript.replace(/\./g,'') + '.');
-});
+}); console.log(lyrics);
 
 keyword.get_key_words(lyrics, function(err, result) {
 	if (err)
 		console.log(err);
 	else {
-		//console.log(result);
+		//console.log(JSON.stringify(result, null, 2));
 		var c = 0;
 		result.documents.forEach(function (k) {
 			k['timestamps'] = {};

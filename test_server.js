@@ -1,5 +1,6 @@
 var http = require('http');
 var https = require('https');
+console.log("Server Started")
 http.createServer(function (req, res) {
     console.log(req.url);
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -141,8 +142,8 @@ function getMetaData (url, callback) {
 				extract_results: true
 			});
 			stream.on('data', function(data) {
-				//console.log(JSON.stringify(data, null, 2));
-				if (data.results[0].alternatives[0].transcript.indexOf(".") !== -1)
+        //console.log(JSON.stringify(data, null, 2));
+				if (data.results.length > 0 && data.results[0].alternatives[0].transcript.indexOf(".") !== -1)
 					initialObj.results.push(data.results[0]);
 			});
 			stream.on('error', function(err) {
